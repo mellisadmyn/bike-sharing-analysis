@@ -3,6 +3,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 # configure settings for the webpage
 st.set_page_config(page_title="Bike Sharing Dashboard", page_icon=":bar_chart:", layout="wide")
@@ -134,6 +136,7 @@ st.plotly_chart(fig)
 st.info("The bike rental pattern on non-working days is varies, with the average indicating a single peak at a specific hour. On average, the increase occurs within the time range from 12 to 17 o'clock.", icon="💡")
 
 # plotting the bar chart of weathers condition
+st.markdown("---")
 fig = px.bar(
     weather_df,
     x='weather',
@@ -173,6 +176,7 @@ st.plotly_chart(fig)
 st.info("The temperature has a positive correlation with total_rent. For casual users, it is positively correlated with a value of 0.57 and registered with a value of 0.37. Therefore, it can be concluded that the higher the temperature, the more total_rent tends to increase.", icon="💡")
 
 # plotting the bar chart of season category
+st.markdown("---")
 fig = px.bar(
     season_df,
     x='season',
@@ -202,3 +206,41 @@ fig.update_layout(xaxis_title='Season', yaxis_title='Total Rent')
 st.plotly_chart(fig)
 
 st.info("There was an increase in bike rentals across all four seasons from the year 2011 to 2012.", icon="💡")
+
+# plotting the scatter map for clustering
+st.markdown("---")
+st.subheader("Clustering Rental Types")
+number_clusters = st.slider("Select Number of Clusters", 2, 10, 3)
+
+# clustering features
+features = ['total_rent', 'temp', 'humidity', 'windspeed']
+scaler = StandardScaler()
+scaled = scaler.fit_transform(filtered_df[features])
+kmeans = KMeans(n_clusters = number_clusters, random_state = 0)
+clusters = kmeans.fit_predict(scaled)
+filtered_df['cluster'] = clusters
+
+fig = px.scatter(
+    filtered_df, 
+    x='temp', 
+    y='total_rent', 
+    color='cluster',
+    color_continuous_scale='viridis', 
+    size_max=10, 
+    width=900, 
+    height=600
+)
+fig.update_layout(
+    xaxis_title='Temperature',
+    yaxis_title='Total Orders',
+    title='Clustering of Bike Rental Types'
+)
+# modify the legend
+fig.update_layout(coloraxis_colorbar=dict(
+    tickmode='array',
+    tickvals=list(filtered_df['cluster'].unique()),  # Unique cluster values
+    ticktext=[f'{cluster}' for cluster in filtered_df['cluster'].unique()]  # Custom legend labels
+))
+st.plotly_chart(fig)
+
+st.info("Certain groups might prefer to order bike at particular temperatures. This insight can assist in making informed decisions for better bike usage planning and inventory management.", icon="💡")
