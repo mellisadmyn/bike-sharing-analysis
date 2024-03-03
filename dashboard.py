@@ -189,8 +189,6 @@ st.plotly_chart(fig)
 st.info("The Fall season is the category with the highest average number of bicycle rentals followed by the Summer, Winter, and finally the Springer season.", icon="💡")
 
 # plotting the bar chart of year in season
-st.write(seasons_year_df)
-
 fig = px.bar(
     seasons_year_df,
     x='season',
